@@ -140,13 +140,6 @@ def check_position(hero):
         ex = MyWidget(pictures[ques_num], answers[ques_num])
         ex.show()
         app.exec()
-        # if level_map[y + i][x + j] == '$':
-        #     password = pg.prompt(text=f'Введите первые буквы ответов на загадки ({len(pictures)})', title='exam')
-        #     if password is not None:
-        #         if set(password.lower()) == answer_letters:
-        #             pg.alert(text='Congratulations, you have successfully passed this level !!!', button='OK')
-        #         else:
-        #             pg.alert(text='You lose! Think about', button='OK'
 
 if __name__ == '__main__':
     all_sprites = pygame.sprite.Group()
