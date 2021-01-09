@@ -17,12 +17,12 @@ def show_task(image_path, question, correct_answer):
     screen.blit(quest, (300, 270))
 
     hint = font.render('>Your answer', False, (255, 255, 255))
-    screen.blit(hint, (300, 500))
+    screen.blit(hint, (300, 550))
 
     all_sprites = pygame.sprite.Group()
     task = pygame.sprite.Sprite()
     task.image = load_image(image_path)
-    task.rect = 950, 150
+    task.rect = 900, 200
     all_sprites.add(task)
 
     alphabet = 'abcdefghijklmnopqrstuvwxyz'
@@ -38,32 +38,35 @@ def show_task(image_path, question, correct_answer):
             if event.type == pygame.KEYDOWN:
                 # print(event.key)
                 if event.key == 13:
-                    if ans == correct_answer:
-                        pygame.draw.circle(screen, pygame.Color('green'), (1060, 700), 100)
+                    if ans[1:] == correct_answer:
+                        pygame.draw.circle(screen, pygame.Color('green'), (1000, 700), 100)
                         corr_flag = True
                     else:
                         corr_flag = False
-                        pygame.draw.circle(screen, pygame.Color('red'), (1060, 700), 100)
+                        pygame.draw.circle(screen, pygame.Color('red'), (1000, 700), 100)
                 elif event.key == 8:
                     ans = ans[:-1]
                     screen.blit(fon, (0, 0))
                     all_sprites.draw(screen)
                     if isinstance(corr_flag, bool):
                         if corr_flag:
-                            pygame.draw.circle(screen, pygame.Color('green'), (1060, 700), 100)
+                            pygame.draw.circle(screen, pygame.Color('green'), (1000, 700), 100)
                         else:
-                            pygame.draw.circle(screen, pygame.Color('red'), (1060, 700), 100)
+                            pygame.draw.circle(screen, pygame.Color('red'), (1000, 700), 100)
                     screen.blit(quest, (300, 270))
+                    screen.blit(hint, (300, 550))
                 elif event.key == 27:
                     running = False
                 else:
                     try:
+                        if '>' not in ans:
+                            ans = '>' + ans
                         ans += alphabet[event.key - 97]
                     except Exception:
                         pass
         all_sprites.draw(screen)
         display_ans = font.render(ans, False, (255, 255, 255))
-        screen.blit(display_ans, (300, 650))
+        screen.blit(display_ans, (300, 610))
         pygame.display.flip()
     pygame.quit()
 
