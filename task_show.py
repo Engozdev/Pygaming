@@ -12,18 +12,22 @@ def show_task(image_path, question, correct_answer):
 
     pygame.font.init()
     font = pygame.font.SysFont('Arial', 40)
+    question = '>' + question
     quest = font.render(question, False, (255, 255, 255))
-    screen.blit(quest, (250, 270))
+    screen.blit(quest, (300, 270))
+
+    hint = font.render('>Your answer', False, (255, 255, 255))
+    screen.blit(hint, (300, 500))
 
     all_sprites = pygame.sprite.Group()
     task = pygame.sprite.Sprite()
     task.image = load_image(image_path)
-    task.rect = 750, 150
+    task.rect = 950, 150
     all_sprites.add(task)
 
     alphabet = 'abcdefghijklmnopqrstuvwxyz'
-    ans = ''
-    corr_flag = False
+    ans = '>'
+    corr_flag = ''
     clock = pygame.time.Clock()
     running = True
     while running:
@@ -35,20 +39,23 @@ def show_task(image_path, question, correct_answer):
                 # print(event.key)
                 if event.key == 13:
                     if ans == correct_answer:
-                        pygame.draw.circle(screen, pygame.Color('green'), (900, 700), 100)
+                        pygame.draw.circle(screen, pygame.Color('green'), (1060, 700), 100)
                         corr_flag = True
                     else:
                         corr_flag = False
-                        pygame.draw.circle(screen, pygame.Color('red'), (900, 700), 100)
+                        pygame.draw.circle(screen, pygame.Color('red'), (1060, 700), 100)
                 elif event.key == 8:
                     ans = ans[:-1]
                     screen.blit(fon, (0, 0))
                     all_sprites.draw(screen)
-                    if corr_flag:
-                        pygame.draw.circle(screen, pygame.Color('green'), (900, 700), 100)
-                    else:
-                        pygame.draw.circle(screen, pygame.Color('red'), (900, 700), 100)
+                    if isinstance(corr_flag, bool):
+                        if corr_flag:
+                            pygame.draw.circle(screen, pygame.Color('green'), (1060, 700), 100)
+                        else:
+                            pygame.draw.circle(screen, pygame.Color('red'), (1060, 700), 100)
                     screen.blit(quest, (300, 270))
+                elif event.key == 27:
+                    running = False
                 else:
                     try:
                         ans += alphabet[event.key - 97]
