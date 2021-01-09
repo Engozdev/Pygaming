@@ -178,7 +178,6 @@ if __name__ == '__main__':
     hero = Player(hx, hy)
     ticks, speed = 0, 5
     fon = load_image('fon.jpg')
-    # fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
     while running:
         keys = None
         for event in pygame.event.get():
