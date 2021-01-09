@@ -2,6 +2,7 @@ import pygame
 import sys
 import os
 import random
+
 FPS = 50
 
 
@@ -115,7 +116,7 @@ def move(heros, movement=None):
             newx, newy = x + 1, y
         elif x <= max_x - 1 and y - 1 >= 0 and level_map[y - 1][x + 1] != '#':
             newx, newy = x + 1, y - 1
-    elif movement == None:
+    elif movement is None:
         if y < max_y - 1 and level_map[y + 1][x] != '#':
             newx, newy = x, y + 1
     heros.move(newx, newy)
@@ -155,7 +156,6 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        # screen.fill((0, 0, 0))
         screen.blit(fon, (0, 0))
         if ticks == speed:
             keys = pygame.key.get_pressed()
@@ -165,7 +165,6 @@ if __name__ == '__main__':
                 move(hero, 'right')
             move(hero)
             ticks = 0
-
 
         ticks += 1
         all_sprites.draw(screen)

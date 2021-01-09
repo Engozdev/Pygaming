@@ -162,7 +162,7 @@ player_image = load_image('main_hero.jpg')
 
 tile_width = tile_height = 50
 pygame.init()
-size = WIDTH, HEIGHT = 1200, 800
+size = WIDTH, HEIGHT = 800, 800
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption('Hero moving')
 FPS = 50
@@ -201,10 +201,6 @@ while running:
     screen.fill((0, 0, 0))
     sprite_group.draw(screen)
     hero_group.draw(screen)
-    x_coord, y_coord = 900, 100
-    for a in user_answers:
-        print_result(a, x_coord, y_coord)
-        y_coord += 100
     pygame.display.flip()
     if task_flag:
         check_position(player)
