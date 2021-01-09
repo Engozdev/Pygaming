@@ -5,15 +5,15 @@ import pygame
 
 def show_task(image_path, question, correct_answer):
     pygame.init()
-    size = width, height = 1280, 960
+    size = width, height = 1500, 1000
     screen = pygame.display.set_mode(size)
     fon = pygame.transform.scale(load_image('Terminal.jpg'), (width, height))
     screen.blit(fon, (0, 0))
 
     pygame.font.init()
-    font = pygame.font.SysFont('Arial', 30)
+    font = pygame.font.SysFont('Arial', 40)
     quest = font.render(question, False, (255, 255, 255))
-    screen.blit(quest, (250, 230))
+    screen.blit(quest, (250, 270))
 
     all_sprites = pygame.sprite.Group()
     task = pygame.sprite.Sprite()
@@ -35,21 +35,20 @@ def show_task(image_path, question, correct_answer):
                 # print(event.key)
                 if event.key == 13:
                     if ans == correct_answer:
-                        # ans = ''
-                        pygame.draw.circle(screen, pygame.Color('green'), (1000, 700), 100)
+                        pygame.draw.circle(screen, pygame.Color('green'), (900, 700), 100)
                         corr_flag = True
                     else:
                         corr_flag = False
-                        pygame.draw.circle(screen, pygame.Color('red'), (1000, 700), 100)
+                        pygame.draw.circle(screen, pygame.Color('red'), (900, 700), 100)
                 elif event.key == 8:
                     ans = ans[:-1]
                     screen.blit(fon, (0, 0))
                     all_sprites.draw(screen)
                     if corr_flag:
-                        pygame.draw.circle(screen, pygame.Color('green'), (1000, 700), 100)
+                        pygame.draw.circle(screen, pygame.Color('green'), (900, 700), 100)
                     else:
-                        pygame.draw.circle(screen, pygame.Color('red'), (1000, 700), 100)
-                    screen.blit(quest, (250, 230))
+                        pygame.draw.circle(screen, pygame.Color('red'), (900, 700), 100)
+                    screen.blit(quest, (300, 270))
                 else:
                     try:
                         ans += alphabet[event.key - 97]
@@ -79,4 +78,4 @@ def load_image(name, colorkey=None):
     return image
 
 
-show_task("nepal.png", 'Which country has this flag?', 'nepal')
+show_task("nepal.png", 'Which country owns this flag?', 'nepal')
