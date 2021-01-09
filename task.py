@@ -9,8 +9,6 @@ class MyWidget(QWidget):
     def __init__(self, picture_path, answer):
         super().__init__()
         uic.loadUi('proj.ui', self)  # Загружаем дизайн
-        self.btn.setIcon(QIcon('data\kodred.png'))
-        self.btn.setIconSize(QSize(75, 75))
         self.btn.clicked.connect(self.check)
         self.answer = answer.lower()
         pixmap = QPixmap(picture_path)
@@ -30,6 +28,6 @@ class MyWidget(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = MyWidget('data/nepal.jpg', 'непал')
+    ex = MyWidget('data/nepal.png', 'непал')
     ex.show()
     sys.exit(app.exec_())
