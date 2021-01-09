@@ -5,6 +5,29 @@ import pyautogui as pg
 from task import MyWidget
 from PyQt5.QtWidgets import QApplication
 
+
+def load_image(name, colorkey=-1):
+    fullname = os.path.join('data', name)
+    # если файл не существует, то выходим
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
+    if colorkey is not None:
+        # image = image.convert()
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
 def print_result(text, x, y):
     font = pygame.font.Font(None, 50)
     text = font.render(text, True, (100, 255, 100))
@@ -39,6 +62,74 @@ def start_screen():
         clock.tick(FPS)
 
 
+def load_level(filename):
+    filename = "data/" + filename
+    # читаем уровень, убирая символы перевода строки
+    with open(filename, 'r') as mapFile:
+        map_of_level = [line.strip() for line in mapFile]
+
+    # и подсчитываем максимальную длину
+    max_width = max(map(len, map_of_level))
+
+    # дополняем каждую строку пустыми клетками ('.')
+    return list(map(lambda x: x.ljust(max_width, '.'), map_of_level))
+
+
+class Tile(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(sprite_group)
+        self.image = tile_images[tile_type]
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x, tile_height * pos_y)
+
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(hero_group)
+        self.image = player_image
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x + 15, tile_height * pos_y + 5)
+        self.pos = (pos_x, pos_y)
+
+    def move(self, x, y):
+        self.pos = pos_x, pos_y = (x, y)
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x + 15, tile_height * pos_y + 5)
+
+
+def generate_level(level):
+    new_player, x, y = None, None, None
+    for y in range(len(level)):
+        for x in range(len(level[y])):
+            if level[y][x] == '.':
+                Tile('empty', x, y)
+            elif level[y][x] == '#':
+                Tile('wall', x, y)
+            elif level[y][x] == '?':
+                Tile('task', x, y)
+            elif level[y][x] == '$':
+                Tile('door', x, y)
+            elif level[y][x] == '@':
+                Tile('empty', x, y)
+                new_player = Player(x, y)
+    # вернем игрока, а также размер поля в клетках
+    return new_player, x, y
+
+
+def move(hero, movement):
+    x, y = hero.pos
+    if movement == 'up':
+        if y > 0 and (level_map[y - 1][x] == '@' or level_map[y - 1][x] == '.'):
+            hero.move(x, y - 1)
+    elif movement == 'down':
+        if y < max_y and (level_map[y + 1][x] == '@' or level_map[y + 1][x] == '.'):
+            hero.move(x, y + 1)
+    elif movement == 'left':
+        if x > 0 and (level_map[y][x - 1] == '.' or level_map[y][x - 1] == '@'):
+            hero.move(x - 1, y)
+    elif movement == 'right':
+        if x < max_x and (level_map[y][x + 1] == '.' or level_map[y][x + 1] == '@'):
+            hero.move(x + 1, y)
 
 
 def check_position(hero):
