@@ -2,9 +2,7 @@ import pygame
 import sys
 import os
 import random
-import pyautogui as pg
-from task import MyWidget
-from PyQt5.QtWidgets import QApplication
+
 FPS = 50
 
 
@@ -41,11 +39,15 @@ def terminate():
 
 
 class Tile(pygame.sprite.Sprite):
-    def __init__(self, tile_type, pos_x, pos_y):
+    def __init__(self, tile_type, pos_x, pos_y, f=False):
         super().__init__(sprite_group)
         self.image = tile_images[tile_type]
-        self.rect = self.image.get_rect().move(
-            tile_width * pos_x, tile_height * pos_y)
+        if f:
+            self.rect = self.image.get_rect().move(
+                tile_width * pos_x - 1, tile_height * pos_y - 61)
+        else:
+            self.rect = self.image.get_rect().move(
+                tile_width * pos_x, tile_height * pos_y)
         self.abs_pos = (self.rect.x, self.rect.y)
 
 
@@ -61,6 +63,82 @@ class Player(pygame.sprite.Sprite):
         self.pos = pos_x, pos_y = (x, y)
         self.rect = self.image.get_rect().move(
             tile_width * pos_x + 15, tile_height * pos_y - 45)
+
+
+def show_task(ques_num):
+    image_path = lvl[seed[tek]][0][ques_num]
+    question = lvl[seed[tek]][1][ques_num]
+    correct_answer = lvl[seed[tek]][2][ques_num].lower()
+
+    fon = pygame.transform.scale(load_image('Terminal.jpg'), (width, height))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.SysFont('Arial', 30)
+    question = '>' + question
+    quest = font.render(question, False, (255, 255, 255))
+    screen.blit(quest, (300, 270))
+    hint = font.render('>Ваш ответ', False, (255, 255, 255))
+    screen.blit(hint, (300, 550))
+
+    all_sprites = pygame.sprite.Group()
+    task = pygame.sprite.Sprite()
+    task.image = load_image(image_path)
+    task.rect = 900, 200
+    all_sprites.add(task)
+    alphabet = {113: 'й', 119: 'ц', 101: 'у', 114: 'к', 116: 'е', 121: 'н', 117: 'г', 105: 'ш', 111: 'щ', 112: 'з',
+                1093: 'х', 1098: 'ъ', 97: 'ф', 115: 'ы', 100: 'в', 102: 'а', 103: 'п', 104: 'р', 106: 'о', 107: 'л',
+                108: 'д', 1078: 'ж', 1101: 'э', 122: 'я', 120: 'ч', 99: 'с', 118: 'м', 98: 'и', 110: 'т', 109: 'ь',
+                1073: 'б', 1102: 'ю', 1105: 'ё', 49: '1', 50: '2', 51: '3', 52: '4', 53: '5', 54: '6', 55: '7',
+                56: '8', 57: '9', 48: '0', 45: '-', 46: ','}
+    ans = '>'
+    corr_flag = ''
+    clock = pygame.time.Clock()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == 13:
+                    ans_copy = ans
+                    ans = '>'
+                    screen.blit(fon, (0, 0))
+                    all_sprites.draw(screen)
+                    if ans_copy[1:] == correct_answer:
+                        pygame.draw.circle(screen, pygame.Color('green'), (1000, 700), 100)
+                        lvl[seed[tek]][3][ques_num] = True
+                        corr_flag = True
+                    else:
+                        corr_flag = False
+                        pygame.draw.circle(screen, pygame.Color('red'), (1000, 700), 100)
+                    screen.blit(quest, (300, 270))
+                    screen.blit(hint, (300, 550))
+                    ans_copy = ''
+                elif event.key == 8:
+                    ans = ans[:-1]
+                    if '>' not in ans:
+                        ans = '>' + ans
+                    screen.blit(fon, (0, 0))
+                    all_sprites.draw(screen)
+                    if isinstance(corr_flag, bool):
+                        if corr_flag:
+                            pygame.draw.circle(screen, pygame.Color('green'), (1000, 700), 100)
+                        else:
+                            pygame.draw.circle(screen, pygame.Color('red'), (1000, 700), 100)
+                    screen.blit(quest, (300, 270))
+                    screen.blit(hint, (300, 550))
+                elif event.key == 27:
+                    return
+                else:
+                    try:
+                        ans += alphabet[event.key]
+                    except Exception:
+                        pass
+            all_sprites.draw(screen)
+            display_ans = font.render(ans, False, (255, 255, 255))
+            screen.blit(display_ans, (300, 610))
+            pygame.display.flip()
+            pygame.display.flip()
+            clock.tick(FPS)
 
 
 def generate_level(level, f=0):
@@ -81,8 +159,16 @@ def generate_level(level, f=0):
                 hx1, hy1 = x, y
             elif level[y][x] == '1' or level[y][x] == '2':
                 Tile('dor', x, y)
+            elif level[y][x] == 'D':
+                s, k = 0, 0
+                for i in lvl[seed[tek]][3]:
+                    k += 1
+                    if i:
+                        s += 1
+                st = str(k) + '-' + str(s)
+                Tile(st, x, y)
             elif level[y][x] == '?':
-                Tile('empty', x, y)
+                Tile('kvest', x, y, f=True)
     if f == 1:
         return hx1, hy1, x, y
     elif f == 2:
@@ -90,56 +176,69 @@ def generate_level(level, f=0):
     return hx, hy, x, y
 
 
-def new_lvl(heros):
-    global tek, level_map, max_x, max_y, seed, pictures, answers, answer_letters, bool_answers, coordinate, user_answers
-    x, y = heros.pos
-    nam = level_map[y][x]
+def new_lvl(nam):
+    global tek, level_map, max_x, max_y, seed, hero
     if nam == '1':
         tek -= 1
         s = 'map_' + seed[tek] + '.txt'
-        pictures, answers, answer_letters, bool_answers, coordinate, user_answers = lvl[seed[tek]]
         level_map = load_level(s)
         hx, hy, max_x, max_y = generate_level(level_map, f=1)
-        heros.move(hx, hy)
-
+        hero.move(hx, hy)
     elif nam == '2':
-        
-        tek += 1
-        s = 'map_' + seed[tek] + '.txt'
-        pictures, answers, answer_letters, bool_answers, coordinate, user_answers = lvl[seed[tek]]
-        level_map = load_level(s)
-        hx, hy, max_x, max_y = generate_level(level_map, f=2)
-        heros.move(hx, hy)
+        s, k = 0, 0
+        for i in lvl[seed[tek]][3]:
+            k += 1
+            if i:
+                s += 1
+        if s == k:
+            tek += 1
+            s = 'map_' + seed[tek] + '.txt'
+            level_map = load_level(s)
+            hx, hy, max_x, max_y = generate_level(level_map, f=2)
+            hero.move(hx, hy)
 
 
 def move(heros, movement=None):
     x, y = heros.pos
+    new_x, new_y = x, y
     if movement == 'left':
-        if x >= 0 and level_map[y][x - 1] != '#':
-            heros.move(x - 1, y)
-        elif x >= 0 and y - 1 >= 0 and level_map[y - 1][x - 1] != '#':
-            heros.move(x - 1, y - 1)
+        if x > 0 and level_map[y][x - 1] != '#':
+            new_x, new_y = (x - 1, y)
+        elif x > 0 and y - 1 >= 0 and level_map[y - 1][x - 1] != '#':
+            new_x, new_y = (x - 1, y - 1)
     elif movement == 'right':
-        if x <= max_x - 1 and level_map[y][x + 1] != '#':
-            heros.move(x + 1, y)
-        elif x <= max_x - 1 and y - 1 >= 0 and level_map[y - 1][x + 1] != '#':
-            heros.move(x + 1, y - 1)
+        if x < max_x and level_map[y][x + 1] != '#':
+            new_x, new_y = (x + 1, y)
+        elif x < max_x and y - 1 >= 0 and level_map[y - 1][x + 1] != '#':
+            new_x, new_y = (x + 1, y - 1)
     elif movement == None:
         if y < max_y - 1 and level_map[y + 1][x] != '#':
-            heros.move(x, y + 1)
-    new_lvl(heros)
-
+            new_x, new_y = (x, y + 1)
+    nam = level_map[new_y][new_x]
+    if nam == '1':
+        new_lvl('1')
+    elif nam == '2' or nam == 'D':
+        new_lvl('2')
+    else:
+        heros.move(new_x, new_y)
 
 
 def check_position(hero):
     x, y = hero.pos
+    f = False
     if level_map[y][x] == '?':
-        ques_num = coordinate[(y, x)]
-        bool_answers[ques_num] = True
-        app = QApplication(sys.argv)
-        ex = MyWidget(pictures[ques_num], answers[ques_num])
-        ex.show()
-        app.exec()
+        ques_num = lvl[seed[tek]][4][(y, x)]
+        f = True
+    elif x >= 1 and level_map[y][x - 1] == '?':
+        ques_num = lvl[seed[tek]][4][(y, x - 1)]
+        f = True
+    elif x <= max_x and level_map[y][x + 1] == '?':
+        ques_num = lvl[seed[tek]][4][(y, x + 1)]
+        f = True
+    if f:
+        show_task(ques_num)
+        generate_level(level_map)
+
 
 if __name__ == '__main__':
     all_sprites = pygame.sprite.Group()
@@ -147,7 +246,17 @@ if __name__ == '__main__':
     hero_group = pygame.sprite.Group()
     tile_images = {
         'dor': pygame.transform.scale(load_image('box.png'), (50, 50)),
-        'empty': pygame.transform.scale(load_image('grass.png'), (50, 50)),
+        '0-0': pygame.transform.scale(load_image('box.png'), (50, 50)),
+        '1-0': load_image('box_1-0.png'),
+        '1-1': load_image('box_1-1.png'),
+        '2-0': load_image('box_2-0.png'),
+        '2-1': load_image('box_2-1.png'),
+        '2-2': load_image('box_2-2.png'),
+        '3-0': load_image('box_3-0.png'),
+        '3-1': load_image('box_3-1.png'),
+        '3-2': load_image('box_3-2.png'),
+        '3-3': load_image('box_3-3.png'),
+        'kvest': pygame.transform.scale(load_image('kvest.png'), (52, 111)),
         'wall': pygame.transform.scale(load_image('kodred.png'), (50, 50))
     }
     player_image = pygame.transform.scale(load_image('Index_var2.png'), (42, 90))
@@ -157,14 +266,18 @@ if __name__ == '__main__':
     size = width, height = 1500, 1000
     FPS = 50
 
-    lvl = {'0': [['data/nepal.png', 'data/spain.jpg'], ['Непал', 'Испания'], {'н', 'и'}, [False] * 2, {(13, 0): 0, (6, 27): 1}, []],
-           '1': [['data/nepal.png', 'data/spain.jpg'], ['Непал', 'Испания'], {'н', 'и'}, [False] * 2, {(15, 11): 0, (13, 21): 1}, []],
-           '2': [['data/nepal.png', 'data/spain.jpg'], ['Непал', 'Испания'], {'н', 'и'}, [False], {(9, 14): 0}, []],
-           '3': [['data/nepal.png', 'data/spain.jpg'], ['Непал', 'Испания'], {'н', 'и'}, [False] * 3, {(13, 0): 0, (9, 15): 1, (9, 15): 2}, []],
-           '4': [['data/nepal.png', 'data/spain.jpg'], ['Непал', 'Испания'], {'н', 'и'}, [False] * 3, {(13, 0): 0, (9, 15): 1, (9, 15): 2}, []],
-           '5': [['data/nepal.png', 'data/spain.jpg'], ['Непал', 'Испания'], {'н', 'и'}, [False] * 0, {}, []],
-           'k': [['data/nepal.png', 'data/spain.jpg'], ['Непал', 'Испания'], {'н', 'и'}, [False] * 0, {}, []]}
-    pictures, answers, answer_letters, bool_answers, coordinate, user_answers = lvl['0']
+    lvl = {'0': [['nepal.png', 'spain.jpg'], ['Флаг какой страны изображён на картинке?'] * 2, ['Непал', 'Испания'],
+                 [False] * 2, {(13, 0): 0, (6, 27): 1}],
+           '1': [['nepal.png', 'spain.jpg'], ['Флаг какой страны изображён на картинке?'] * 2, ['Непал', 'Испания'],
+                 [False] * 2, {(15, 11): 0, (13, 21): 1}],
+           '2': [['nepal.png'], ['Флаг какой страны изображён на картинке?'], ['Непал', 'Испания'], [False],
+                 {(9, 14): 0}],
+           '3': [['nepal.png', 'spain.jpg', 'nepal.jpg'], ['Флаг какой страны изображён на картинке?'] * 3,
+                 ['Непал', 'Испания'], [False] * 3, {(10, 17): 0, (13, 11): 1, (15, 7): 2}],
+           '4': [['nepal.png', 'spain.jpg', 'spain.jpg'], ['Флаг какой страны изображён на картинке?'] * 3,
+                 ['Непал', 'Испания'], [False] * 3, {(10, 9): 0, (10, 17): 1, (17, 22): 2}],
+           '5': [[], [], [False] * 0, {}],
+           'k': [[], [], [False] * 0, {}]}
 
     screen = pygame.display.set_mode(size)
     running = True
@@ -178,6 +291,8 @@ if __name__ == '__main__':
     hero = Player(hx, hy)
     ticks, speed = 0, 5
     fon = load_image('fon.jpg')
+    ter = True
+    # fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
     while running:
         keys = None
         for event in pygame.event.get():
@@ -185,24 +300,25 @@ if __name__ == '__main__':
                 running = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 check_position(hero)
+                # show_task("nepal.png", 'Which country owns this flag?', 'nepal')
+                # ter = False
         # screen.fill((0, 0, 0))
         screen.blit(fon, (0, 0))
         if ticks == speed:
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                move(hero, 'left')
-            elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                move(hero, 'right')
+            if ter:
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                    move(hero, 'left')
+                elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                    move(hero, 'right')
             ticks = 0
-        elif ticks % 2 == 0:
+        elif ticks % 2 == 0 and ter:
             move(hero)
-
-
-
         ticks += 1
-        all_sprites.draw(screen)
-        sprite_group.draw(screen)
-        hero_group.draw(screen)
+        if ter:
+            all_sprites.draw(screen)
+            sprite_group.draw(screen)
+            hero_group.draw(screen)
         clock.tick(FPS)
         pygame.display.flip()
     pygame.quit()
