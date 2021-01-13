@@ -158,9 +158,7 @@ def generate_level(level, f=0):
     sprite_group = pygame.sprite.Group()
     for y in range(len(level)):
         for x in range(len(level[y])):
-            if level[y][x] == '#':
-                Tile('wall', x, y)
-            elif level[y][x] == '@':
+            if level[y][x] == '@':
                 hx, hy = x, y
             elif level[y][x] == 'V':
                 hx2, hy2 = x, y
@@ -188,13 +186,11 @@ def generate_level(level, f=0):
 
 
 def new_lvl(nam):
-    global tek, level_map, max_x, max_y, seed, hero
+    global tek, level_map, max_x, max_y, seed, hero, fon
+    f = 0
     if nam == '1':
         tek -= 1
-        s = 'map_' + seed[tek] + '.txt'
-        level_map = load_level(s)
-        hx, hy, max_x, max_y = generate_level(level_map, f=1)
-        hero.move(hx, hy)
+        f = True, 1
     elif nam == '2':
         s, k = 0, 0
         for i in lvl[seed[tek]][3]:
@@ -203,10 +199,14 @@ def new_lvl(nam):
                 s += 1
         if s == k:
             tek += 1
-            s = 'map_' + seed[tek] + '.txt'
-            level_map = load_level(s)
-            hx, hy, max_x, max_y = generate_level(level_map, f=2)
-            hero.move(hx, hy)
+            f = True, 2
+    if f:
+        name = 'map_' + seed[tek] + '.txt'
+        level_map = load_level(name)
+        name = 'map/' + seed[tek] + '_fon.jpg'
+        fon = load_image(name)
+        hx, hy, max_x, max_y = generate_level(level_map, f=f)
+        hero.move(hx, hy)
 
 
 def move(heros, movement=None):
@@ -299,10 +299,10 @@ if __name__ == '__main__':
     tek = 0
     hx, hy, max_x, max_y = generate_level(level_map)
     hero = Player(hx, hy)
-    ticks, speed = 0, 5
-    # fon = load_image('fon.jpg')
+    ticks, speed = 0, 25
+    fon = load_image('map/0_fon.jpg')
     ter = True
-    fon = pygame.transform.scale(load_image('fon3.jpg'), (width, height))
+    # fon = pygame.transform.scale(load_image('fon3.jpg'), (width, height))
     while running:
         keys = None
         for event in pygame.event.get():
@@ -314,13 +314,14 @@ if __name__ == '__main__':
         screen.blit(fon, (0, 0))
         if ticks == speed:
             hero.update()
+            ticks = 0
+        if ticks % 7 == 0:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
                 move(hero, 'left')
             elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                 move(hero, 'right')
-            ticks = 0
-        elif ticks % 2 == 0 and ter:
+        if ticks % 2 == 0 and ter:
             move(hero)
         ticks += 1
         all_sprites.draw(screen)
