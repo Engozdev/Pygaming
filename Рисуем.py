@@ -54,15 +54,24 @@ class Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(hero_group)
-        self.image = player_image
+        self.frames = [pygame.transform.scale(load_image('hero_1.png'), (48, 100)),
+                       pygame.transform.scale(load_image('hero_2.png'), (48, 100)),
+                       pygame.transform.scale(load_image('hero_3.png'), (48, 100)),
+                       pygame.transform.scale(load_image('hero_2.png'), (48, 100))]
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x + 15, tile_height * pos_y - 45)
+            tile_width * pos_x + 1, tile_height * pos_y - 50)
         self.pos = (pos_x, pos_y)
 
     def move(self, x, y):
         self.pos = pos_x, pos_y = (x, y)
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x + 15, tile_height * pos_y - 45)
+            tile_width * pos_x + 1, tile_height * pos_y - 50)
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
 
 
 def show_task(ques_num):
@@ -157,6 +166,8 @@ def generate_level(level, f=0):
                 hx2, hy2 = x, y
             elif level[y][x] == 'X':
                 hx1, hy1 = x, y
+            elif level[y][x] == 'B':
+                Tile('0-0', x, y)
             elif level[y][x] == '1' or level[y][x] == '2':
                 Tile('dor', x, y)
             elif level[y][x] == 'D':
@@ -167,7 +178,7 @@ def generate_level(level, f=0):
                         s += 1
                 st = str(k) + '-' + str(s)
                 Tile(st, x, y)
-            elif level[y][x] == '?':
+            elif level[y][x] == '?' or level[y][x] == 'f':
                 Tile('kvest', x, y, f=True)
     if f == 1:
         return hx1, hy1, x, y
@@ -245,21 +256,20 @@ if __name__ == '__main__':
     sprite_group = pygame.sprite.Group()
     hero_group = pygame.sprite.Group()
     tile_images = {
-        'dor': pygame.transform.scale(load_image('box.png'), (50, 50)),
-        '0-0': pygame.transform.scale(load_image('box.png'), (50, 50)),
-        '1-0': load_image('box_1-0.png'),
-        '1-1': load_image('box_1-1.png'),
-        '2-0': load_image('box_2-0.png'),
-        '2-1': load_image('box_2-1.png'),
-        '2-2': load_image('box_2-2.png'),
-        '3-0': load_image('box_3-0.png'),
-        '3-1': load_image('box_3-1.png'),
-        '3-2': load_image('box_3-2.png'),
-        '3-3': load_image('box_3-3.png'),
+        'dor': pygame.transform.scale(load_image('box_n.png'), (50, 50)),
+        '0-0': pygame.transform.scale(load_image('box_v.png'), (50, 50)),
+        '1-0': load_image('box_1_0.png'),
+        '1-1': load_image('box_1_1.png'),
+        '2-0': load_image('box_2_0.png'),
+        '2-1': load_image('box_2_1.png'),
+        '2-2': load_image('box_2_2.png'),
+        '3-0': load_image('box_3_0.png'),
+        '3-1': load_image('box_3_1.png'),
+        '3-2': load_image('box_3_2.png'),
+        '3-3': load_image('box_3_3.png'),
         'kvest': pygame.transform.scale(load_image('kvest.png'), (52, 111)),
         'wall': pygame.transform.scale(load_image('kodred.png'), (50, 50))
     }
-    player_image = pygame.transform.scale(load_image('Index_var2.png'), (42, 90))
     tile_width = tile_height = 50
     pygame.init()
     pygame.display.set_caption('Хз')
@@ -272,10 +282,10 @@ if __name__ == '__main__':
                  [False] * 2, {(15, 11): 0, (13, 21): 1}],
            '2': [['nepal.png'], ['Флаг какой страны изображён на картинке?'], ['Непал', 'Испания'], [False],
                  {(9, 14): 0}],
-           '3': [['nepal.png', 'spain.jpg', 'nepal.jpg'], ['Флаг какой страны изображён на картинке?'] * 3,
-                 ['Непал', 'Испания'], [False] * 3, {(10, 17): 0, (13, 11): 1, (15, 7): 2}],
+           '3': [['nepal.png', 'spain.jpg', 'nepal.png'], ['Флаг какой страны изображён на картинке?'] * 3,
+                 ['Непал', 'Испания', 'Испания'], [False] * 3, {(10, 17): 0, (13, 11): 1, (15, 7): 2}],
            '4': [['nepal.png', 'spain.jpg', 'spain.jpg'], ['Флаг какой страны изображён на картинке?'] * 3,
-                 ['Непал', 'Испания'], [False] * 3, {(10, 9): 0, (10, 17): 1, (17, 22): 2}],
+                 ['Непал', 'Испания', 'Непал'], [False] * 3, {(10, 9): 0, (10, 17): 1, (17, 22): 2}],
            '5': [[], [], [False] * 0, {}],
            'k': [[], [], [False] * 0, {}]}
 
@@ -290,9 +300,9 @@ if __name__ == '__main__':
     hx, hy, max_x, max_y = generate_level(level_map)
     hero = Player(hx, hy)
     ticks, speed = 0, 5
-    fon = load_image('fon.jpg')
+    # fon = load_image('fon.jpg')
     ter = True
-    # fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
+    fon = pygame.transform.scale(load_image('fon3.jpg'), (width, height))
     while running:
         keys = None
         for event in pygame.event.get():
@@ -300,25 +310,22 @@ if __name__ == '__main__':
                 running = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 check_position(hero)
-                # show_task("nepal.png", 'Which country owns this flag?', 'nepal')
-                # ter = False
         # screen.fill((0, 0, 0))
         screen.blit(fon, (0, 0))
         if ticks == speed:
-            if ter:
-                keys = pygame.key.get_pressed()
-                if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                    move(hero, 'left')
-                elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                    move(hero, 'right')
+            hero.update()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                move(hero, 'left')
+            elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                move(hero, 'right')
             ticks = 0
         elif ticks % 2 == 0 and ter:
             move(hero)
         ticks += 1
-        if ter:
-            all_sprites.draw(screen)
-            sprite_group.draw(screen)
-            hero_group.draw(screen)
+        all_sprites.draw(screen)
+        sprite_group.draw(screen)
+        hero_group.draw(screen)
         clock.tick(FPS)
         pygame.display.flip()
     pygame.quit()
