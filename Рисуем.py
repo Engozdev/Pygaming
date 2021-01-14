@@ -210,6 +210,7 @@ def new_lvl(nam):
 
 
 def move(heros, movement=None):
+    global running
     x, y = heros.pos
     new_x, new_y = x, y
     if movement == 'left':
@@ -226,10 +227,12 @@ def move(heros, movement=None):
         if y < max_y - 1 and level_map[y + 1][x] != '#':
             new_x, new_y = (x, y + 1)
     nam = level_map[new_y][new_x]
-    if nam == '1':
+    if nam == '1' or nam == 'B':
         new_lvl('1')
     elif nam == '2' or nam == 'D':
         new_lvl('2')
+    elif nam == 'R':
+        running = False
     else:
         heros.move(new_x, new_y)
 
@@ -250,6 +253,25 @@ def check_position(hero):
         show_task(ques_num)
         generate_level(level_map)
 
+def start_screen():
+    fon = load_image('start_screen_1.jpg')
+    k = 1
+    screen.blit(fon, (0, 0))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                if k < 3:
+                    k += 1
+                    name = 'start_screen_' + str(k) + '.jpg'
+                    fon = load_image(name)
+                    screen.blit(fon, (0, 0))
+                else:
+                    return  # начинаем игру
+        pygame.display.flip()
+        clock.tick(FPS)
 
 if __name__ == '__main__':
     all_sprites = pygame.sprite.Group()
@@ -272,22 +294,21 @@ if __name__ == '__main__':
     }
     tile_width = tile_height = 50
     pygame.init()
-    pygame.display.set_caption('Хз')
+    pygame.display.set_caption('Subvectio certamine')
     size = width, height = 1500, 1000
     FPS = 50
 
     lvl = {
-        '0': [['puzzle/lol.jpg', 'puzzle/twitter.png'], ['Как называется бренд, логотип которго изображён на картинке?']
-              * 2, ['Яндекс Еда', 'Твиттер'], [False] * 2, {(13, 0): 0, (6, 27): 1}],
+        '0': [['puzzle/lol.jpg', 'puzzle/twitter.png'], ['Как называется этот бренд?'] * 2, ['Яндекс Еда', 'Твиттер'], [False] * 2, {(13, 0): 0, (6, 27): 1}],
         '1': [['puzzle/Big_Tasty.jpg', 'puzzle/cheezburger.jpg'], ['Какое блюдо изображено на картинке?'] * 2,
               ['Биг Тести', 'чизбургер'], [False] * 2, {(15, 14): 0, (13, 23): 1}],
-        '2': [['puzzle/vopper_barbeku.jpg', 'puzzle/king.png'], ['Какое блюдо изображено на картинке?'] * 2,
+        '2': [['puzzle/vopper_barbeku.png', 'puzzle/king.png'], ['Какое блюдо изображено на картинке?'] * 2,
               ['Воппер барбекю', 'чикин кинг'], [False] * 2, {(9, 8): 0, (9, 26): 1}],
-        '3': [['puzzle/twister.jpg', 'puzzle/shaurma.jpg', 'puzzle/pepperoni.png'],
+        '3': [['puzzle/twister.png', 'puzzle/shaurma.jpg', 'puzzle/pepperoni.png'],
               ['Какое блюдо изображено на картинке?'] * 3, ['твистер', 'шаурма', 'пепперони'],
               [False] * 3, {(10, 17): 0, (13, 11): 1, (15, 7): 2}],
-        '4': [['puzzle/Pepsi.png', 'puzzle/Happy_Meal.jpg'],
-              ['Как называется бренд, логотип которго изображён на картинке?',
+        '4': [['puzzle/Pepsi.png', 'puzzle/Happy_Meal.png'],
+              ['Как называется этот бренд?',
                'Какое блюдо изображено на картинке?'], ['пепси', 'Хеппи мил'],
               [False] * 2, {(3, 12): 0, (9, 12): 1}],
         '5': [['puzzle/DeliveryClub.png'], ['Кто/что это?'], ['КОНКУРЕНТЫ'], [False], {(17, 18): 0}],
@@ -308,6 +329,7 @@ if __name__ == '__main__':
     fon = load_image('map/0_fon.jpg')
     ter = True
     # fon = pygame.transform.scale(load_image('fon3.jpg'), (width, height))
+    start_screen()
     while running:
         keys = None
         for event in pygame.event.get():
@@ -320,13 +342,13 @@ if __name__ == '__main__':
         if ticks == speed:
             hero.update()
             ticks = 0
-        if ticks % 7 == 0:
+        if ticks % 6 == 0:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
                 move(hero, 'left')
             elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                 move(hero, 'right')
-        if ticks % 2 == 0 and ter:
+        if ticks % 3 == 0 and ter:
             move(hero)
         ticks += 1
         all_sprites.draw(screen)
